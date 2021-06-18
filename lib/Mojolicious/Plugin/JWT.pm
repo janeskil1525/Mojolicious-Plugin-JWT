@@ -1,10 +1,32 @@
 package Mojolicious::Plugin::JWT;
-use Mojo::Base 'Mojolicious::Plugin';
+use Mojo::Base 'Mojolicious::Plugin', -signatures, -async_await;
+
+use Mojo::JWT;
+
+has 'secret' => qw {lK1leAbOxGmUKdVmuMKbJtD7ru1wd2V9Y5e58zLPlL5UI4GP1AETmd7eZ3MRZEP};
 
 our $VERSION = '0.01';
 
 sub register {
-  my ($self, $app) = @_;
+  my  ($self, $app) = @_;
+
+  $app->helper(JWT => sub {$self});
+}
+
+async sub encode_jwt($self, $claim) {
+
+  my $secret = $self->secret();
+  my $jwt = Mojo::JWT->new(claims => $claim, secret => $secret)->encode;
+
+  return $jwt
+}
+
+async sub decode_jwt($self, $jwt) {
+
+  my $secret = $self->secret();
+  my $claims = Mojo::JWT->new(secret => $secret)->decode($jwt);
+
+  return $claims;
 }
 
 1;
